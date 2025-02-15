@@ -1,7 +1,7 @@
 const asyncHandler = (requestHandler) => {
-    (req, res, next) => {
+    return (req, res, next) => {
         Promise.resolve(requestHandler(req, res, next)).catch(err => {
-            res.status(500).json({ error: 'Internal Server Error', err });
+            res.status(500).json({ message: 'Internal Server Error', errors: err.errors });
         })
     }
 }
