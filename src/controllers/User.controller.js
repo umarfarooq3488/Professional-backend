@@ -96,7 +96,8 @@ const userLogin = asyncHandler(async (req, res) => {
     if (!user) {
         throw new ApiError(401, "Invalid email or username");
     }
-    const checkPassword = user.isPassword(password);
+    const checkPassword = await user.isPassword(password);
+    console.log(checkPassword)
     if (!checkPassword) {
         throw new ApiError(401, "Invalid password");
     }
@@ -126,15 +127,14 @@ const userLogout = asyncHandler(async (req, res) => {
 
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
-    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
+    const incomingRefreshToken = req.cookies.RefreshToken || req.body.refreshToken;
     if (!incomingRefreshToken) {
         throw new ApiError(401, "unauthorized request")
     }
 
     try {
         const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET)
-
-        const user = User.findById(decodedToken?._id)
+        const user = await User.findById(decodedToken?._id)
         if (!user) {
             throw new ApiError(401, "Refresh Token is not valid")
         }
@@ -142,9 +142,9 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             throw new ApiError(401, "Refresh Token is invalid or used")
         }
 
-        const { accessToken, refreshToken } = generateAccessAndRefreshToken(user?._id)
+        const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user?._id)
 
-        res.status(200).cookie("accessToken", accessToken, options).cookie("refreshToken", refreshToken, options).json(
+        res.status(200).cookie("AccessToken", accessToken, options).cookie("RefreshToken", refreshToken, options).json(
             new ApiResponse(200, { accessToken, refreshToken }, "Your access token is refreshed")
         )
     } catch (error) {
@@ -154,23 +154,26 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
 const updateUserPassword = asyncHandler(async (req, res) => {
     const { oldPassword, newPassword, confirmPassword } = req.body;
-
-    const user = await User.findById(req.user?._id)
+    console.log(req.user?._id)
+    const user = await User.findById(req.user?._id);
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
 
     const isPasswordCorrect = await user.isPassword(oldPassword);
     if (!isPasswordCorrect) {
-        throw new ApiError(400, "Old password is incorrect")
+        throw new ApiError(400, "Old password is incorrect");
     }
     if (newPassword !== confirmPassword) {
-        throw new ApiError(400, "New password and confirm password are not same")
+        throw new ApiError(400, "New password and confirm password are not the same");
     }
 
-    user.password = newPassword
-    user.save({ validateBeforeSave: false })
+    user.password = newPassword;
+    await user.save({ validateBeforeSave: false });
 
     res.status(200).json(
         new ApiResponse(200, {}, "Your password is updated")
-    )
+    );
 })
 
 
@@ -252,14 +255,13 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
 const getUserChannelDetails = asyncHandler(async (req, res) => {
     const { userName } = req.params;
     if (!userName) {
-        throw new ApiError(400, "username is missing")
+        throw new ApiError(400, "Username is missing");
     }
 
-    const channel = User.aggregate([
-
+    const channel = await User.aggregate([
         {
             $match: {
-                userName: userName?.toLowerCase()
+                userName: userName.toLowerCase()
             }
         },
         {
@@ -287,13 +289,7 @@ const getUserChannelDetails = asyncHandler(async (req, res) => {
                     $size: "$subscribedTo"
                 },
                 isSubscribed: {
-                    $cond: {
-                        $if: {
-                            $in: [req.user?._id, "$subscribers.subscriber"]
-                        },
-                        $then: true,
-                        $else: false
-                    }
+                    $in: [req.user?._id, "$subscribers.subscriber"]
                 }
             }
         },
@@ -307,26 +303,24 @@ const getUserChannelDetails = asyncHandler(async (req, res) => {
                 avatar: 1,
                 coverImage: 1,
                 email: 1
-
             }
         }
-    ]
-    )
+    ]);
 
-    if (!channel?.length) {
-        throw new ApiError(401, "Channel not found with this username")
+    if (!channel.length) {
+        throw new ApiError(401, "Channel not found with this username");
     }
 
     res.status(200).json(
         new ApiResponse(200, channel[0], "Channel details")
-    )
+    );
 })
 
 const getUserWatchHistory = asyncHandler(async (req, res) => {
-    const user = User.aggregate([
+    const user = await User.aggregate([
         {
             $match: {
-                _id: new mongoose.Schema.Types.ObjectId(req.user?._id)
+                _id: new mongoose.Types.ObjectId(req.user?._id)
             }
         },
         {
