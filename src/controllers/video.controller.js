@@ -12,7 +12,7 @@ const uploadVideo = asyncHandler(async (req, res) => {
         throw new ApiError(401, "All fields are required")
     }
     const thumbnailLocalPath = req.files.thumbnail[0]?.path;
-    const videoLocalPath = req.files.video[0]?.path;
+    const videoLocalPath = req.files.videoFile[0]?.path;
 
     if (!thumbnailLocalPath) {
         throw new ApiError("Please upload the thumbnail")
@@ -51,10 +51,6 @@ const getVideoDetails = asyncHandler(async (req, res) => {
     if (!video) {
         throw new ApiError(401, "Couldn't fetch the video with the given id")
     }
-    // const ownerDetails = await User.findById(video.owner);
-    // if (!ownerDetails) {
-    //     throw new ApiError(401, "Problem while fetching the owner details")
-    // }
 
     video.views += 1;
     await video.save()

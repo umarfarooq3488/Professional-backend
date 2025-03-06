@@ -1,13 +1,13 @@
 import { Router } from "express";
-import { upload } from "../middlewares/file.middleware";
-import { verifyJWT } from "../middlewares/auth.middleware";
-import { deleteVideo, getAllVideos, getVideoDetails, searchVideos, updateVideoDetails, uploadVideo } from "../controllers/video.controller";
+import { upload } from "../middlewares/file.middleware.js";
+import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { deleteVideo, getAllVideos, getVideoDetails, searchVideos, updateVideoDetails, uploadVideo } from "../controllers/video.controller.js";
 
 const router = Router()
 
 router.route("/upload-video").post(verifyJWT, upload.fields([
     { name: "thumbnail", maxCount: 1 },
-    { name: "video", maxCount: 1 }
+    { name: "videoFile", maxCount: 1 }
 ]), uploadVideo)
 router.route("/video-details/:id").get(verifyJWT, getVideoDetails)
 router.route("/update-video-details/:id").patch(verifyJWT, updateVideoDetails)
