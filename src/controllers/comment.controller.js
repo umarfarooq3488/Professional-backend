@@ -1,6 +1,6 @@
 import asyncHandler from "../utils/asyncHandler.js";
-import { ApiResponse } from "../utils/ApiResponse";
-import { ApiError } from "../utils/ApiErrors";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { ApiError } from "../utils/ApiErrors.js";
 import { Comment } from "../models/Comment.model.js";
 
 const createComment = asyncHandler(async (req, res) => {

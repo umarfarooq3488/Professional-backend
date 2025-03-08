@@ -1,7 +1,7 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import { Tweet } from "../models/Tweet.model.js";
-import { ApiResponse } from "../utils/ApiResponse";
-import { ApiError } from "../utils/ApiErrors";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { ApiError } from "../utils/ApiErrors.js";
 
 
 const createTweet = asyncHandler(async (req, res) => {
